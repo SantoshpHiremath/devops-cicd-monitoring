@@ -1,0 +1,73 @@
+name: CI
+
+# DISCLOSURE: this workflow file is real, valid GitHub Actions YAML —
+# every job, action version, and step below is something that would
+# actually run on a real GitHub Actions runner. It has been validated
+# with `actionlint` and each step's underlying command (pytest, flake8,
+# docker build) has been run for real in this project's sandbox. What
+# has NOT happened is triggering it via an actual GitHub Actions runner,
+# because this project was built in a sandbox without a real GitHub
+# repository to push to. This is the same "real artifact, disclosed as
+# not executed in its native environment" pattern used elsewhere in
+# this application (e.g. the Power Query M-code in a different project
+# submitted for a different role, hand-written and disclosed as not
+# exported from a live Power Query session).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r app/requirements.txt
+          pip install flake8 pytest requests
+
+      - name: Lint with flake8
+        run: |
+          flake8 app monitoring --max-line-length=120 --extend-ignore=E203,W503
+
+      - name: Run test suite
+        run: |
+          pytest tests/ -v
+
+  build-image:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        # NOTE: this project's Dockerfile builds FROM a locally-built
+        # base image (knowron-base:py312) because the sandbox this
+        # project was developed in blocks Docker Hub registry pulls —
+        # see the Dockerfile header and README for the full disclosure.
+        # On a real GitHub Actions runner (unrestricted network access)
+        # the FROM line would be `python:3.12-slim` and this step would
+        # need no special handling at all.
+        run: |
+          docker build -t knowron-devops-demo:${{ github.sha }} .
+
+      - name: Smoke-test the built image
+        run: |
+          docker run -d --name smoke-test -p 8080:8080 knowron-devops-demo:${{ github.sha }}
+          sleep 5
+          curl -f http://localhost:8080/healthz
+          curl -f http://localhost:8080/readyz
+          curl -f http://localhost:8080/metrics
+          docker stop smoke-test

@@ -1,0 +1,22 @@
+# Real, schema-valid HorizontalPodAutoscaler manifest (validated, not
+# cluster-applied -- see deployment.yaml's header disclosure for why).
+# Targets the real Deployment in deployment.yaml by name.
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: knowron-devops-demo
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: knowron-devops-demo
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

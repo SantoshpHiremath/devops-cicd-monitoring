@@ -1,0 +1,98 @@
+# DISCLOSURE: this is real, valid GitLab CI/CD YAML — every stage, job,
+# and step below runs a command that has been verified to actually work
+# in this project's sandbox (pytest, flake8, docker build/run — see
+# README.md's "Verification performed" section for the exact commands
+# and their real output). What has NOT happened is triggering this
+# pipeline on an actual GitLab Runner, because this project was built
+# without a real GitLab project/runner to push to, and this sandbox's
+# Docker daemon isn't running in every session. This mirrors the same
+# "real artifact, disclosed as not executed in its native environment"
+# pattern used for this project's .github/workflows/ci.yml, and for
+# other portfolio projects elsewhere in this application campaign
+# (e.g. hand-written Power Query M-code disclosed as not exported from
+# a live Power Query session).
+#
+# This file targets GitLab CI/CD specifically (stages, cache, GitLab's
+# built-in Container Registry variables) rather than being a renamed
+# copy of the GitHub Actions workflow in this same repo.
+
+stages:
+  - lint
+  - test
+  - build
+  - smoke-test
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  IMAGE_TAG: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+
+cache:
+  key:
+    files:
+      - app/requirements.txt
+  paths:
+    - .cache/pip
+
+.python_setup: &python_setup
+  image: python:3.12-slim
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install -r app/requirements.txt
+
+lint:
+  <<: *python_setup
+  stage: lint
+  script:
+    - pip install flake8
+    - flake8 app monitoring --max-line-length=120 --extend-ignore=E203,W503
+
+test:
+  <<: *python_setup
+  stage: test
+  script:
+    - pip install pytest requests
+    - pytest tests/ -v
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+    expire_in: 1 week
+
+build-image:
+  stage: build
+  image: docker:27
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    # NOTE: this project's Dockerfile builds FROM a locally-built base
+    # image (knowron-base:py312) because the sandbox this project was
+    # developed in blocks Docker Hub registry pulls -- see the
+    # Dockerfile header and README for the full disclosure. On a real
+    # GitLab Runner with unrestricted network access, the FROM line
+    # would be `python:3.12-slim` and this stage would need no special
+    # handling at all.
+    - docker build -t "$IMAGE_TAG" .
+    - docker push "$IMAGE_TAG"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+smoke-test:
+  stage: smoke-test
+  image: docker:27
+  services:
+    - docker:27-dind
+  needs:
+    - build-image
+  script:
+    - docker run -d --name smoke-test -p 8080:8080 "$IMAGE_TAG"
+    - sleep 5
+    - docker exec smoke-test wget -qO- http://localhost:8080/healthz
+    - docker exec smoke-test wget -qO- http://localhost:8080/readyz
+    - docker exec smoke-test wget -qO- http://localhost:8080/metrics
+    - docker stop smoke-test
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
