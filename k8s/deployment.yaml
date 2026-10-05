@@ -1,14 +1,8 @@
-# DISCLOSURE: this manifest is real, schema-valid Kubernetes YAML,
-# validated against the actual Kubernetes 1.31 OpenAPI schema with the
-# kubernetes-validate library (see README.md's "Verification performed"
-# section for the exact command and output). It has NOT been applied to
-# a running cluster: this sandbox has no path to a real Kubernetes
-# cluster (kind, minikube, and k3s installer/download endpoints are all
-# network-blocked here, and the sandboxed Docker daemon can't reliably
-# host a nested cluster either). This is the same "real artifact,
-# disclosed as not executed in its native environment" pattern used
-# elsewhere in this project (.gitlab-ci.yml) and portfolio (hand-written
-# Power Query M-code in a different project).
+# NOTE: this manifest is schema-valid Kubernetes YAML, validated against
+# the Kubernetes 1.31 OpenAPI schema with the kubernetes-validate library
+# (see README.md's "Tests" section for the command and output). It has
+# not been applied to a running cluster; schema validation confirms the
+# objects are structurally correct Kubernetes API objects.
 #
 # The probe paths, port, and image name below match this project's real,
 # tested Flask app (app/main.py) and Dockerfile exactly -- this targets
@@ -17,22 +11,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: knowron-devops-demo
+  name: devops-cicd-demo
   labels:
-    app: knowron-devops-demo
+    app: devops-cicd-demo
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: knowron-devops-demo
+      app: devops-cicd-demo
   template:
     metadata:
       labels:
-        app: knowron-devops-demo
+        app: devops-cicd-demo
     spec:
       containers:
-        - name: knowron-devops-demo
-          image: knowron-devops-demo:latest
+        - name: devops-cicd-demo
+          image: devops-cicd-demo:latest
           ports:
             - containerPort: 8080
               name: http
@@ -75,12 +69,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: knowron-devops-demo
+  name: devops-cicd-demo
   labels:
-    app: knowron-devops-demo
+    app: devops-cicd-demo
 spec:
   selector:
-    app: knowron-devops-demo
+    app: devops-cicd-demo
   ports:
     - name: http
       port: 80

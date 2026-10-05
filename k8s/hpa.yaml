@@ -1,16 +1,16 @@
-# Real, schema-valid HorizontalPodAutoscaler manifest (validated, not
-# cluster-applied -- see deployment.yaml's header disclosure for why).
+# Schema-valid HorizontalPodAutoscaler manifest (validated, not
+# cluster-applied -- see the note in deployment.yaml).
 # Targets the real Deployment in deployment.yaml by name.
 
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: knowron-devops-demo
+  name: devops-cicd-demo
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: knowron-devops-demo
+    name: devops-cicd-demo
   minReplicas: 2
   maxReplicas: 6
   metrics:

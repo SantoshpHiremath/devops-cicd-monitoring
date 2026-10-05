@@ -1,16 +1,7 @@
-# DISCLOSURE: this is real, valid GitLab CI/CD YAML — every stage, job,
-# and step below runs a command that has been verified to actually work
-# in this project's sandbox (pytest, flake8, docker build/run — see
-# README.md's "Verification performed" section for the exact commands
-# and their real output). What has NOT happened is triggering this
-# pipeline on an actual GitLab Runner, because this project was built
-# without a real GitLab project/runner to push to, and this sandbox's
-# Docker daemon isn't running in every session. This mirrors the same
-# "real artifact, disclosed as not executed in its native environment"
-# pattern used for this project's .github/workflows/ci.yml, and for
-# other portfolio projects elsewhere in this application campaign
-# (e.g. hand-written Power Query M-code disclosed as not exported from
-# a live Power Query session).
+# NOTE: this is valid GitLab CI/CD YAML. Every stage runs a command that
+# has been verified locally (pytest, flake8, docker build/run -- see
+# README.md's "Tests" section for the commands and output). The
+# pipeline itself has not been triggered on a GitLab Runner.
 #
 # This file targets GitLab CI/CD specifically (stages, cache, GitLab's
 # built-in Container Registry variables) rather than being a renamed
@@ -68,13 +59,9 @@ build-image:
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
-    # NOTE: this project's Dockerfile builds FROM a locally-built base
-    # image (knowron-base:py312) because the sandbox this project was
-    # developed in blocks Docker Hub registry pulls -- see the
-    # Dockerfile header and README for the full disclosure. On a real
-    # GitLab Runner with unrestricted network access, the FROM line
-    # would be `python:3.12-slim` and this stage would need no special
-    # handling at all.
+    # NOTE: the Dockerfile builds FROM the public python:3.12-slim
+    # image, which a GitLab Runner can pull directly, so this stage
+    # needs no special handling.
     - docker build -t "$IMAGE_TAG" .
     - docker push "$IMAGE_TAG"
   rules:

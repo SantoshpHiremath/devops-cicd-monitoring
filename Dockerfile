@@ -1,18 +1,10 @@
-# DISCLOSURE: this Dockerfile was originally developed in a sandbox
-# environment that blocked outbound access to Docker Hub and other
-# container registries, so it was first built FROM a locally-built base
-# image (knowron-base:py312, assembled for real with debootstrap +
-# `apt-get install python3`, then imported into Docker with
-# `docker import` -- see build_local_base.sh for those exact commands)
-# instead of pulling python:3.12-slim directly. That local-only base was
-# never published anywhere, so it doesn't exist for GitHub Actions (or
-# anyone else) to pull -- CI correctly failed with "pull access denied,
-# repository does not exist" until this was switched to the real,
-# publicly available python:3.12-slim below, which is what this project
-# always intended to use in any normal environment. The multi-stage
-# structure, layer caching, and non-root user below are unaffected by
-# which base image is used and are the actual best-practice content
-# being demonstrated.
+# NOTE: this Dockerfile builds FROM the public python:3.12-slim image.
+# For environments without access to Docker Hub or other container
+# registries, build_local_base.sh assembles an equivalent local base
+# image (local-base:py312, built with debootstrap + `apt-get install
+# python3` and imported with `docker import`); swap the FROM line to use
+# it. The multi-stage structure, layer caching, and non-root user below
+# are unaffected by which base image is used.
 
 FROM python:3.12-slim AS base
 

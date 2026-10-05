@@ -7,10 +7,9 @@ file) when:
   - the error rate over the polling window exceeds a threshold
 
 This is a real, runnable, testable poller — not a description of one.
-It intentionally does NOT integrate with a real alerting backend
-(PagerDuty, Slack, etc.) since there's nothing in this sandbox to wire
-up honestly; instead it writes structured alerts that a real
-integration would consume, which is the same shape used by many
+It writes structured alerts to stdout and a log file rather than
+integrating with an alerting backend (PagerDuty, Slack, etc.); a real
+integration would consume the same shape, which is common for
 lightweight in-house monitoring scripts before they graduate to a full
 alerting platform.
 """

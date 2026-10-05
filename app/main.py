@@ -1,7 +1,6 @@
-"""A small knowledge-platform API service — modeled loosely on KNOWRON's
-actual domain (a mobile knowledge platform for desk-less workers), built
-as a realistic target for the CI/CD pipeline and monitoring stack in
-this project, not as a claim of building KNOWRON's real product.
+"""A small knowledge-platform API service (a mobile knowledge platform for
+desk-less workers), built as a realistic deployable target for the CI/CD
+pipeline and monitoring stack in this project.
 
 Endpoints:
   GET  /healthz          — liveness probe (process is up)
@@ -161,7 +160,7 @@ def metrics():
     # value wins" across processes, not summed) — acceptable here since
     # article_count and uptime are the same in every worker in
     # practice (shared start time; ARTICLES mutations are rare and the
-    # posting doesn't require strict cross-worker consistency for
+    # service doesn't require strict cross-worker consistency for
     # these two values the way it does for the request/error counts).
     UPTIME_GAUGE.set(round(time.time() - START_TIME, 1))
     ARTICLES_GAUGE.set(len(ARTICLES))

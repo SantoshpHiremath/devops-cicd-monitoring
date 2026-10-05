@@ -1,10 +1,9 @@
 #!/bin/bash
-# Builds the local base image (knowron-base:py312) used by the
-# Dockerfile in this project, because this sandbox environment blocks
-# outbound access to Docker Hub / container registries (registry pulls
-# return 403). This script records the REAL commands actually run to
-# build it — not a simulation. In a normal environment, none of this
-# would be needed; `FROM python:3.12-slim` would just work.
+# Builds a local base image (local-base:py312) for environments that
+# block outbound access to Docker Hub / container registries (registry
+# pulls return 403). It records the commands used to build a minimal
+# Ubuntu-based Python image from scratch. With registry access, none of
+# this is needed; `FROM python:3.12-slim` just works.
 set -euo pipefail
 
 WORKDIR=$(mktemp -d)
@@ -31,9 +30,9 @@ sudo chroot "$WORKDIR/rootfs" /bin/bash -c "
 
 # Tar the rootfs and import it as a real Docker image layer.
 sudo tar -C "$WORKDIR/rootfs" -cf "$WORKDIR/rootfs.tar" .
-cat "$WORKDIR/rootfs.tar" | docker import - knowron-base:py312
+cat "$WORKDIR/rootfs.tar" | docker import - local-base:py312
 
-echo "Built knowron-base:py312"
-docker run --rm knowron-base:py312 python3 --version
+echo "Built local-base:py312"
+docker run --rm local-base:py312 python3 --version
 
 rm -rf "$WORKDIR"
